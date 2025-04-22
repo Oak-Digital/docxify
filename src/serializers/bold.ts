@@ -1,18 +1,15 @@
-import type { ChildNode, Element } from "domhandler";
-import type { Serializer } from "../interfaces/serializer";
-import { Paragraph, TextRun, type XmlComponent } from "docx";
+import type { IRunOptions, XmlComponent } from "docx";
+import type { ITagSerializer, TagSerializerReturn } from "../tag-serializer";
+import type { Element } from "domhandler";
 
-type Next = (children: ChildNode[]) => XmlComponent[];
-
-export class BoldSerializer /*implements Serializer<Element>*/ {
+export class BoldSerializer implements ITagSerializer {
 	selector: string = "b, strong";
 
-	serialize(element: Element, next: Next): XmlComponent[] {
-		return [
-			new TextRun({
+	serialize(element: Element): TagSerializerReturn {
+		return {
+			textModifier: {
 				bold: true,
-				children: next(element.children),
-			}),
-		];
+			},
+		};
 	}
 }
