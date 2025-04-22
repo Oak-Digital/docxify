@@ -6,12 +6,12 @@ export type State = {
 	readonly textModifiers?: IRunOptions;
 };
 
-export type Node<Id = string> = {
+export type Node<Data = string> = {
 	readonly type: "block" | "inline";
 	// State should cascade to children
 	readonly state?: State;
 	readonly children: Node[];
-	readonly identifier: Id;
+	readonly data?: Data;
 };
 
 /**

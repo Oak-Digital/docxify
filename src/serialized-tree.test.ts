@@ -6,7 +6,7 @@ describe("flattenBlocksTree", () => {
 		const node = {
 			type: "block",
 			children: [],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
@@ -20,11 +20,11 @@ describe("flattenBlocksTree", () => {
 			children: [
 				{
 					type: "inline",
-					identifier: "2",
+					data: "2",
 					children: [],
 				},
 			],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
@@ -38,12 +38,12 @@ describe("flattenBlocksTree", () => {
 			children: [
 				{
 					type: "inline",
-					identifier: "2",
+					data: "2",
 					children: [],
 					state: { textModifiers: { bold: true } },
 				},
 			],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
@@ -57,17 +57,17 @@ describe("flattenBlocksTree", () => {
 			children: [
 				{
 					type: "inline",
-					identifier: "2",
+					data: "2",
 					children: [
 						{
 							type: "inline",
-							identifier: "3",
+							data: "3",
 							children: [],
 						},
 					],
 				},
 			],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
@@ -79,12 +79,12 @@ describe("flattenBlocksTree", () => {
 		const child = {
 			type: "block",
 			children: [],
-			identifier: "2",
+			data: "2",
 		} as const satisfies Node;
 		const node = {
 			type: "block",
 			children: [child],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
@@ -102,19 +102,19 @@ describe("flattenBlocksTree", () => {
 		const child1 = {
 			type: "block",
 			children: [],
-			identifier: "2",
+			data: "2",
 		} as const satisfies Node;
 
 		const child2 = {
 			type: "inline",
 			children: [],
-			identifier: "3",
+			data: "3",
 		} as const satisfies Node;
 
 		const node = {
 			type: "block",
 			children: [child1, child2],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
@@ -136,25 +136,25 @@ describe("flattenBlocksTree", () => {
 		const block1 = {
 			type: "block",
 			children: [],
-			identifier: "2",
+			data: "2",
 		} as const satisfies Node;
 
 		const block2 = {
 			type: "block",
 			children: [],
-			identifier: "3",
+			data: "3",
 		} as const satisfies Node;
 
 		const inlineElem = {
 			type: "inline",
 			children: [],
-			identifier: "4",
+			data: "4",
 		} as const satisfies Node;
 
 		const node = {
 			type: "block",
 			children: [block1, inlineElem, block2],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
@@ -177,19 +177,19 @@ describe("flattenBlocksTree", () => {
 		const block1 = {
 			type: "block",
 			children: [],
-			identifier: "2",
+			data: "2",
 		} as const satisfies Node;
 
 		const block2 = {
 			type: "block",
 			children: [],
-			identifier: "3",
+			data: "3",
 		} as const satisfies Node;
 
 		const node = {
 			type: "block",
 			children: [block1, block2],
-			identifier: "1",
+			data: "1",
 		} as const satisfies Node;
 
 		const result = flattenBlocksTree(node);
