@@ -17,7 +17,7 @@ export type Node<Data = string> = {
 /**
  * extracts blocks to the top level
  */
-export const flattenBlocksTree = (node: Node): Node[] => {
+export const flattenBlocksTree = (node: Node, state?: State): Node[] => {
 	const children = node.children;
 	const isLeaf = children.length === 0;
 
@@ -25,8 +25,15 @@ export const flattenBlocksTree = (node: Node): Node[] => {
 		return [node];
 	}
 
+	const currentState =
+		node.state || state ? merge({}, state, node.state) : undefined;
+
 	const flattenedChildren = children.flatMap((child) => {
-		const flattened = flattenBlocksTree(child);
+		const cascadedState =
+			currentState || child.state
+				? merge({}, currentState, child.state)
+				: undefined;
+		const flattened = flattenBlocksTree(child, cascadedState);
 
 		return flattened;
 	});
@@ -44,8 +51,13 @@ export const flattenBlocksTree = (node: Node): Node[] => {
 
 	flattenedChildren.forEach((child, i) => {
 		if (child.type === "block") {
+			const cascadedState =
+				currentState || child.state
+					? merge({}, currentState, child.state)
+					: undefined;
 			topLevel.push({
 				...child,
+				state: cascadedState,
 			});
 
 			// if next is inline, create a new current

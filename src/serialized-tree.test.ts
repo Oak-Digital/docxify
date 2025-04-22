@@ -288,12 +288,94 @@ describe("flattenBlocksTree", () => {
 					},
 				],
 				data: "1",
-				state: { textModifiers: { bold: true } },
+				state: topState,
 			},
 			{
 				type: "block",
 				children: [],
-				state: { textModifiers: { bold: true } },
+				state: topState,
+			},
+		]);
+	});
+
+	it("should cascade merge state to deeply nested blocks", () => {
+		const topState = { textModifiers: { bold: true } };
+		const node = {
+			type: "block",
+			state: topState,
+			children: [
+				{
+					type: "inline",
+					children: [
+						{
+							type: "block",
+							state: { textModifiers: { italics: true } },
+							children: [],
+						},
+					],
+				},
+			],
+			data: "1",
+		} as const satisfies Node;
+
+		const result = flattenBlocksTree(node);
+
+		expect(result).toEqual([
+			{
+				type: "block",
+				children: [
+					{
+						type: "inline",
+						children: [],
+					},
+				],
+				data: "1",
+				state: topState,
+			},
+			{
+				type: "block",
+				children: [],
+				state: { textModifiers: { bold: true, italics: true } },
+			},
+		]);
+
+		const node2 = {
+			type: "block",
+			state: topState,
+			children: [
+				{
+					type: "inline",
+					state: { textModifiers: { italics: true } },
+					children: [
+						{
+							type: "block",
+							children: [],
+						},
+					],
+				},
+			],
+			data: "1",
+		} as const satisfies Node;
+
+		const result2 = flattenBlocksTree(node2);
+
+		expect(result2).toEqual([
+			{
+				type: "block",
+				state: topState,
+				children: [
+					{
+						type: "inline",
+						state: { textModifiers: { italics: true } },
+						children: [],
+					},
+				],
+				data: "1",
+			},
+			{
+				type: "block",
+				children: [],
+				state: { textModifiers: { bold: true, italics: true } },
 			},
 		]);
 	});
