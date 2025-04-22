@@ -203,4 +203,98 @@ describe("flattenBlocksTree", () => {
 			block2,
 		]);
 	});
+
+	it("should extract blocks deeply nested within inline elements", () => {
+		const baseInline: Node = {
+			type: "inline",
+			children: [],
+		};
+
+		const node = {
+			type: "block",
+			children: [
+				baseInline,
+				{
+					type: "inline",
+					children: [
+						{
+							type: "inline",
+							children: [
+								baseInline,
+								{
+									type: "block",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+			],
+		} as const satisfies Node;
+
+		const result = flattenBlocksTree(node);
+
+		expect(result).toEqual([
+			{
+				...node,
+				children: [
+					baseInline,
+					{
+						type: "inline",
+						children: [
+							{
+								type: "inline",
+								children: [baseInline],
+							},
+						],
+					},
+				],
+			},
+			{
+				type: "block",
+				children: [],
+			},
+		]);
+	});
+
+	it("should cascade state to deeply nested blocks", () => {
+		const topState = { textModifiers: { bold: true } };
+		const node = {
+			type: "block",
+			state: topState,
+			children: [
+				{
+					type: "inline",
+					children: [
+						{
+							type: "block",
+							children: [],
+						},
+					],
+				},
+			],
+			data: "1",
+		} as const satisfies Node;
+
+		const result = flattenBlocksTree(node);
+
+		expect(result).toEqual([
+			{
+				type: "block",
+				children: [
+					{
+						type: "inline",
+						children: [],
+					},
+				],
+				data: "1",
+				state: { textModifiers: { bold: true } },
+			},
+			{
+				type: "block",
+				children: [],
+				state: { textModifiers: { bold: true } },
+			},
+		]);
+	});
 });

@@ -25,6 +25,12 @@ export const flattenBlocksTree = (node: Node): Node[] => {
 		return [node];
 	}
 
+	const flattenedChildren = children.flatMap((child) => {
+		const flattened = flattenBlocksTree(child);
+
+		return flattened;
+	});
+
 	const topLevel: Node[] = [];
 
 	const createCurrent = (node: Node): Node => {
@@ -36,38 +42,25 @@ export const flattenBlocksTree = (node: Node): Node[] => {
 	let current: Node = createCurrent(node);
 	topLevel.push(current);
 
-	// go through children, if they are blocks, add them to the top level
-	// if they are inline, add them to the current node
-
-	for (let i = 0; i < children.length; i++) {
-		const child = children[i]!;
-		// const isLast = i === children.length - 1;
-
+	flattenedChildren.forEach((child, i) => {
 		if (child.type === "block") {
-			const cascadedState =
-				current.state || child.state
-					? merge({}, current.state, child.state)
-					: undefined;
-			topLevel.push(
-				...flattenBlocksTree({
-					...child,
-					state: cascadedState,
-				}),
-			);
+			topLevel.push({
+				...child,
+			});
 
 			// if next is inline, create a new current
-			const next = children[i + 1];
+			const next = flattenedChildren[i + 1];
 			if (next?.type === "inline") {
 				current = createCurrent(node);
 				topLevel.push(current);
 			}
-			continue;
+			return;
 		}
 
 		if (child.type === "inline") {
 			current.children.push(child);
 		}
-	}
+	});
 
 	return topLevel;
 };
