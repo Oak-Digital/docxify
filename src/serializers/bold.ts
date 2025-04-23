@@ -1,15 +1,17 @@
-import type { IRunOptions, XmlComponent } from "docx";
-import type { ITagSerializer, TagSerializerReturn } from "../tag-serializer";
+import type { IRunOptions } from "docx";
+import type { ITagSerializer } from "../tag-serializer";
 import type { Element } from "domhandler";
+import { InlineTagSerializer } from "../inline-tag-serializer";
 
-export class BoldSerializer implements ITagSerializer {
+export class BoldSerializer
+	extends InlineTagSerializer
+	implements ITagSerializer
+{
 	selector: string = "b, strong";
 
-	serialize(element: Element): TagSerializerReturn {
+	getModifiers(node: Element): IRunOptions | undefined {
 		return {
-			textModifier: {
-				bold: true,
-			},
+			bold: true,
 		};
 	}
 }

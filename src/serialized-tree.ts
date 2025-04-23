@@ -10,14 +10,17 @@ export type Node<Data = string> = {
 	readonly type: "block" | "inline";
 	// State should cascade to children
 	readonly state?: State;
-	readonly children: Node[];
+	readonly children: Node<Data>[];
 	readonly data?: Data;
 };
 
 /**
  * extracts blocks to the top level
  */
-export const flattenBlocksTree = (node: Node, state?: State): Node[] => {
+export const flattenBlocksTree = <T>(
+	node: Node<T>,
+	state?: State,
+): Node<T>[] => {
 	const children = node.children;
 	const isLeaf = children.length === 0;
 
@@ -33,20 +36,20 @@ export const flattenBlocksTree = (node: Node, state?: State): Node[] => {
 			currentState || child.state
 				? merge({}, currentState, child.state)
 				: undefined;
-		const flattened = flattenBlocksTree(child, cascadedState);
+		const flattened = flattenBlocksTree<T>(child, cascadedState);
 
 		return flattened;
 	});
 
-	const topLevel: Node[] = [];
+	const topLevel: Node<T>[] = [];
 
-	const createCurrent = (node: Node): Node => {
+	const createCurrent = (node: Node<T>): Node<T> => {
 		return {
 			...node,
 			children: [],
 		};
 	};
-	let current: Node = createCurrent(node);
+	let current: Node<T> = createCurrent(node);
 	topLevel.push(current);
 
 	flattenedChildren.forEach((child, i) => {

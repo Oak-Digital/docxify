@@ -1,43 +1,41 @@
 import type { FileChild, IRunOptions, ParagraphChild } from "docx";
 import type { ChildNode, Element } from "domhandler";
 
-export type TagSerializerReturn = {
+export interface ITagSerializer {
+	readonly selector: string;
+
+	/**
+	 * whether this is a block or inline tag
+	 * if it is a block tag, it must return a `FileChild` in the `serialize` method
+	 * if it is an inline tag, it must return a `ParagraphChild` array in the `serialize` method
+	 */
+	getDisplay(node: Element): "inline" | "block";
+
 	/**
 	 * How this tag modifies text
 	 * for example a <b> tag will modify the text to be bold
 	 */
-	textModifier?: IRunOptions;
-	/**
-	 * Some tags might create a new docx block.
-	 * These might be tags such as paragraph, table, headings, etc.
-	 */
-	createBlock?: (
-		children: (
-			/**
-			 * The unhandled children html nodes
-			 */
-			htmlNodes: ChildNode[],
-		) => ParagraphChild[],
+	getModifiers(node: Element): IRunOptions | undefined;
+
+	serialize(
+		/**
+		 * The html node to be serialized
+		 */
+		node: Element,
+		/**
+		 * Options to be passed to the serialized element
+		 */
 		runOptions: IRunOptions,
-	) => FileChild;
+		/**
+		 * The already serialized children of the node
+		 */
+		children: ParagraphChild[],
+	): ParagraphChild[] | FileChild;
 
-	/**
-	 * Some tags create docx inline elements.
-	 * These might be tags such as img, <a>
-	 */
-	createInline?: (
-		children: (
-			/**
-			 * The unhandled children html nodes
-			 */
-			htmlNodes: ChildNode[],
-		) => ParagraphChild[],
-		runOptions: IRunOptions,
-	) => ParagraphChild | ParagraphChild[];
-};
-
-export interface ITagSerializer {
-	selector: string;
-
-	serialize(node: Element): TagSerializerReturn;
+	// /**
+	//  * If the serializer handles some of the children, here you would return those not handled by the serializer.
+	//  * The children will then be serialized and passed to the serialize() method.
+	//  * By default it should return all children.
+	//  */
+	// childrenToPropagate(node: Element): ChildNode[];
 }

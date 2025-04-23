@@ -1,21 +1,28 @@
-import { InternalHyperlink, type ParagraphChild } from "docx";
-import type { ITagSerializer, TagSerializerReturn } from "../tag-serializer";
+import { InternalHyperlink, type IRunOptions, type ParagraphChild } from "docx";
 import type { Element } from "domhandler";
+import { InlineTagSerializer } from "../inline-tag-serializer";
+import type { ITagSerializer } from "../tag-serializer";
 
-export class AnchorSerializer implements ITagSerializer {
+export class AnchorSerializer
+	extends InlineTagSerializer
+	implements ITagSerializer
+{
 	selector: string = "a";
 
-	serialize(element: Element): TagSerializerReturn {
-		const href = element.attributes.find((attr) => attr.name === "href")?.value;
-		return {
-			createInline: href
-				? (children) => {
-						return new InternalHyperlink({
-							anchor: href,
-							children: children(element.children),
-						});
-					}
-				: undefined,
-		};
+	serialize(
+		node: Element,
+		runOptions: IRunOptions,
+		children: ParagraphChild[],
+	): ParagraphChild[] {
+		const href = node.attributes.find((attr) => attr.name === "href")?.value;
+		if (!href) {
+			return children;
+		}
+		return [
+			new InternalHyperlink({
+				anchor: href,
+				children: children,
+			}),
+		];
 	}
 }

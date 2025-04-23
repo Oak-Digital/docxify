@@ -1,17 +1,28 @@
-import { Paragraph } from "docx";
+import {
+	FileChild,
+	Paragraph,
+	type IRunOptions,
+	type ParagraphChild,
+} from "docx";
 import type { Element } from "domhandler";
-import type { ITagSerializer, TagSerializerReturn } from "../tag-serializer";
+import type { ITagSerializer } from "../tag-serializer";
+import { BlockTagSerializer } from "../block-tag-serializer";
 
-export class ParagraphSerializer implements ITagSerializer {
+export class ParagraphSerializer
+	extends BlockTagSerializer
+	implements ITagSerializer
+{
 	readonly selector: string = "p";
 
-	serialize(element: Element): TagSerializerReturn {
-		return {
-			createBlock: (children) => {
-				return new Paragraph({
-					children: children(element.children),
-				});
-			},
-		};
+	serialize(
+		node: Element,
+		runOptions: IRunOptions,
+		children: ParagraphChild[],
+	): FileChild {
+		return new Paragraph({
+			// TODO: find a way to pass the runOptions to the paragraph
+			// ...runOptions,
+			children,
+		});
 	}
 }
