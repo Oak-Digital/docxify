@@ -257,6 +257,74 @@ describe("flattenBlocksTree", () => {
 		]);
 	});
 
+	it("should repeat the same nesting of lines after a deeply nested block", () => {
+		const baseInline: Node = {
+			type: "inline",
+			children: [],
+		};
+
+		const node = {
+			type: "block",
+			children: [
+				baseInline,
+				{
+					type: "inline",
+					children: [
+						{
+							type: "inline",
+							children: [
+								baseInline,
+								{
+									type: "block",
+									children: [],
+								},
+								baseInline,
+							],
+						},
+					],
+				},
+			],
+		} as const satisfies Node;
+
+		const result = flattenBlocksTree(node);
+
+		expect(result).toEqual([
+			{
+				...node,
+				children: [
+					baseInline,
+					{
+						type: "inline",
+						children: [
+							{
+								type: "inline",
+								children: [baseInline],
+							},
+						],
+					},
+				],
+			},
+			{
+				type: "block",
+				children: [],
+			},
+			{
+				...node,
+				children: [
+					{
+						type: "inline",
+						children: [
+							{
+								type: "inline",
+								children: [baseInline],
+							},
+						],
+					},
+				],
+			},
+		]);
+	});
+
 	it("should cascade state to deeply nested blocks", () => {
 		const topState = { textModifiers: { bold: true } };
 		const node = {
@@ -376,6 +444,88 @@ describe("flattenBlocksTree", () => {
 				type: "block",
 				children: [],
 				state: { textModifiers: { bold: true, italics: true } },
+			},
+		]);
+	});
+
+	it("should override state based on the deepest nested node", () => {
+		const topState = { textModifiers: { bold: true } };
+		const node = {
+			type: "block",
+			state: topState,
+			children: [
+				{
+					type: "inline",
+					children: [
+						{
+							type: "block",
+							state: { textModifiers: { bold: false } },
+							children: [],
+						},
+					],
+				},
+			],
+			data: "1",
+		} as const satisfies Node;
+
+		const result = flattenBlocksTree(node);
+
+		expect(result).toEqual([
+			{
+				type: "block",
+				children: [
+					{
+						type: "inline",
+						children: [],
+					},
+				],
+				data: "1",
+				state: topState,
+			},
+			{
+				type: "block",
+				children: [],
+				state: { textModifiers: { bold: false } },
+			},
+		]);
+
+		const node2 = {
+			type: "block",
+			state: topState,
+			children: [
+				{
+					type: "inline",
+					state: { textModifiers: { bold: false } },
+					children: [
+						{
+							type: "block",
+							children: [],
+						},
+					],
+				},
+			],
+			data: "1",
+		} as const satisfies Node;
+
+		const result2 = flattenBlocksTree(node2);
+
+		expect(result2).toEqual([
+			{
+				type: "block",
+				state: topState,
+				children: [
+					{
+						type: "inline",
+						state: { textModifiers: { bold: false } },
+						children: [],
+					},
+				],
+				data: "1",
+			},
+			{
+				type: "block",
+				children: [],
+				state: { textModifiers: { bold: false } },
 			},
 		]);
 	});
