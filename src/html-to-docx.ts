@@ -29,7 +29,7 @@ const serializers = [
 	new ItalicSerializer(),
 	new AnchorSerializer(),
 	// new FallbackSerializer(),
-];
+] as const satisfies ITagSerializer[];
 
 const getSerializer = (element: Element): ITagSerializer | null => {
 	for (const serializer of serializers) {
