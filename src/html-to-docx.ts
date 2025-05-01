@@ -19,10 +19,12 @@ import type { ITagSerializer } from "./tag-serializer";
 import { getArrayRanges, replaceArrayRanges } from "./array-ranges";
 import { treeify } from "array-treeify";
 import { merge } from "lodash";
+import { ItalicSerializer } from "./serializers/italic";
 
 const serializers = [
 	new ParagraphSerializer(),
 	new BoldSerializer(),
+	new ItalicSerializer(),
 	new AnchorSerializer(),
 	// new FallbackSerializer(),
 ];
