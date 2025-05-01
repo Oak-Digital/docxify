@@ -1,5 +1,5 @@
 import type { FileChild, IRunOptions, ParagraphChild } from "docx";
-import type { ITagSerializer } from "./tag-serializer";
+import type { ITagSerializer } from "./tag-serializer.interface";
 import type { Element } from "domhandler";
 
 export abstract class AbstractTagSerializer implements ITagSerializer {

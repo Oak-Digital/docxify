@@ -1,7 +1,7 @@
 import { ElementType } from "htmlparser2";
 import { parseHtml } from "./html-to-json";
-import { BoldSerializer } from "./serializers/bold";
-import { ParagraphSerializer } from "./serializers/paragraph";
+import { BoldSerializer } from "./serializer/serializers/bold";
+import { ParagraphSerializer } from "./serializer/serializers/paragraph";
 import type { ChildNode, Element } from "domhandler";
 import {
 	Document,
@@ -13,14 +13,14 @@ import {
 	type ParagraphChild,
 } from "docx";
 import { is } from "css-select";
-import { AnchorSerializer } from "./serializers/anchor";
+import { AnchorSerializer } from "./serializer/serializers/anchor";
 import { flattenBlocksTree, type Node, type State } from "./serialized-tree";
-import type { ITagSerializer } from "./tag-serializer";
-import { getArrayRanges, replaceArrayRanges } from "./array-ranges";
+import type { ITagSerializer } from "./serializer/tag-serializer";
+import { getArrayRanges, replaceArrayRanges } from "./util/array-ranges";
 import { treeify } from "array-treeify";
 import { merge } from "lodash";
-import { ItalicSerializer } from "./serializers/italic";
-import { HeadingSerializer } from "./serializers/heading";
+import { ItalicSerializer } from "./serializer/serializers/italic";
+import { HeadingSerializer } from "./serializer/serializers/heading";
 
 const serializers = [
 	new HeadingSerializer(),
