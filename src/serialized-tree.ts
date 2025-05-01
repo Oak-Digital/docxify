@@ -1,6 +1,5 @@
 import type { IRunOptions } from "docx";
 import { merge } from "lodash";
-// import * as _ from "lodash";
 
 export type State = {
 	readonly textModifiers?: IRunOptions;
