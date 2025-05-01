@@ -20,8 +20,10 @@ import { getArrayRanges, replaceArrayRanges } from "./array-ranges";
 import { treeify } from "array-treeify";
 import { merge } from "lodash";
 import { ItalicSerializer } from "./serializers/italic";
+import { HeadingSerializer } from "./serializers/heading";
 
 const serializers = [
+	new HeadingSerializer(),
 	new ParagraphSerializer(),
 	new BoldSerializer(),
 	new ItalicSerializer(),
