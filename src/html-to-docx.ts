@@ -18,6 +18,7 @@ import { flattenBlocksTree, type Node, type State } from "./serialized-tree";
 import type { ITagSerializer } from "./tag-serializer";
 import { getArrayRanges, replaceArrayRanges } from "./array-ranges";
 import { treeify } from "array-treeify";
+import { merge } from "lodash";
 
 const serializers = [
 	new ParagraphSerializer(),
@@ -117,16 +118,18 @@ const generateDocxStructuredTree = (elements: ChildNode[]): TreeNode[] => {
 
 const serializeDocxStructuredTreeInlineElement = (
 	tree: TreeNode,
-	state: State | undefined,
+	parentState: State | undefined,
 ): ParagraphChild[] => {
 	const element = tree.data?.element;
 
 	// Base case
 
+	const mergedState = merge({}, parentState, tree.state);
+
 	if (element?.type === ElementType.Text) {
 		return [
 			new TextRun({
-				...state?.textModifiers,
+				...mergedState?.textModifiers,
 				text: element.data,
 			}),
 		];
@@ -138,7 +141,7 @@ const serializeDocxStructuredTreeInlineElement = (
 
 	const serializedChildren = tree.children
 		.map((child) => {
-			return serializeDocxStructuredTreeInlineElement(child, state);
+			return serializeDocxStructuredTreeInlineElement(child, mergedState);
 		})
 		.flat();
 
@@ -151,7 +154,7 @@ const serializeDocxStructuredTreeInlineElement = (
 
 	const serialized = foundSerializer.serialize(
 		element,
-		state?.textModifiers ?? {},
+		mergedState?.textModifiers ?? {},
 		serializedChildren,
 		// TODO: remove type assertion
 	) as ParagraphChild[];
