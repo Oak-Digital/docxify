@@ -9,19 +9,19 @@ export interface ITagSerializer {
 	 * if it is a block tag, it must return a `FileChild` in the `serialize` method
 	 * if it is an inline tag, it must return a `ParagraphChild` array in the `serialize` method
 	 */
-	getDisplay(node: Element): "inline" | "block";
+	getDisplay(node: Element | undefined): "inline" | "block";
 
 	/**
 	 * How this tag modifies text
 	 * for example a <b> tag will modify the text to be bold
 	 */
-	getModifiers(node: Element): IRunOptions | undefined;
+	getModifiers(node: Element | undefined): IRunOptions | undefined;
 
 	serialize(
 		/**
 		 * The html node to be serialized
 		 */
-		node: Element,
+		node: Element | undefined,
 		/**
 		 * Options to be passed to the serialized element
 		 */

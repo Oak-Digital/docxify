@@ -9,7 +9,7 @@ export class BoldSerializer
 {
 	selector: string = "b, strong";
 
-	getModifiers(node: Element): IRunOptions | undefined {
+	getModifiers(node: Element | undefined): IRunOptions | undefined {
 		return {
 			bold: true,
 		};

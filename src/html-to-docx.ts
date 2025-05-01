@@ -16,6 +16,8 @@ import { is } from "css-select";
 import { AnchorSerializer } from "./serializers/anchor";
 import { flattenBlocksTree, type Node, type State } from "./serialized-tree";
 import type { ITagSerializer } from "./tag-serializer";
+import { getArrayRanges, replaceArrayRanges } from "./array-ranges";
+import { treeify } from "array-treeify";
 
 const serializers = [
 	new ParagraphSerializer(),
@@ -81,12 +83,36 @@ const buildTree = (node: ChildNode): TreeNode | null => {
 	return tree;
 };
 
+const wrapTopLevelInlineElements = (elements: TreeNode[]): TreeNode[] => {
+	const inlineRanges = getArrayRanges(elements, (element) => {
+		return element.type === "inline";
+	});
+
+	const wrappedElements = replaceArrayRanges(
+		elements,
+		inlineRanges,
+		(inlineElements) => {
+			return [
+				{
+					type: "block",
+					children: inlineElements,
+				},
+			] as const;
+		},
+	);
+
+	return wrappedElements;
+};
+
 const generateDocxStructuredTree = (elements: ChildNode[]): TreeNode[] => {
 	const trees = elements
 		.map((element) => buildTree(element))
 		.filter((tree) => tree !== null);
 	const flattened = trees.flatMap((tree) => flattenBlocksTree(tree));
-	return flattened;
+	// Top level inline elements must be wrapped in paragraphs.
+	// This is a requirement of docx.
+	const wrapped = wrapTopLevelInlineElements(flattened);
+	return wrapped;
 };
 
 const serializeDocxStructuredTreeInlineElement = (
@@ -94,10 +120,6 @@ const serializeDocxStructuredTreeInlineElement = (
 	state: State | undefined,
 ): ParagraphChild[] => {
 	const element = tree.data?.element;
-
-	if (!element) {
-		throw new Error("Element has to be defined for now");
-	}
 
 	// Base case
 
@@ -142,33 +164,33 @@ const seriaizeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
 	if (element && element.type !== ElementType.Tag) {
 		throw new Error("Element is not a tag");
 	}
-	if (!element) {
-		throw new Error("Element has to be defined for now");
-	}
-	const foundSerializer = element ? getSerializer(element) : null;
+	const foundSerializer = element
+		? getSerializer(element)
+		: new ParagraphSerializer();
 	// Fallback to default serializer for blocks
 	const serializer = foundSerializer ?? new ParagraphSerializer();
 
-	const serializedChildren = tree.children.map((child) => {
+	const serializedChildren = tree.children.flatMap((child) => {
 		return serializeDocxStructuredTreeInlineElement(child, tree.state);
 	});
 	const serialized = serializer.serialize(
 		element,
 		tree.state?.textModifiers ?? {},
-		[],
+		serializedChildren,
 		// TODO: remove type assertion
 	) as FileChild;
 
 	return serialized;
 };
 
-const serializeDocxStructuredTree = (tree: TreeNode[]) => {
+const serializeDocxStructuredTree = (docxStructuredTree: TreeNode[]) => {
 	// TODO: wrap top level inline elements in paragraphs
-	if (tree.some((node) => node.type === "inline")) {
+	if (docxStructuredTree.some((node) => node.type === "inline")) {
+		console.debug("tree", docxStructuredTree);
 		throw new Error("Inline elements are not supported for top level yet");
 	}
 
-	const blocks = tree
+	const blocks = docxStructuredTree
 		.map((node) => {
 			if (node.type === "block") {
 				return seriaizeDocxStructuredTreeBlock(node);
@@ -180,135 +202,183 @@ const serializeDocxStructuredTree = (tree: TreeNode[]) => {
 	return blocks;
 };
 
-type SerializerState = Readonly<{
-	readonly textModifiers: IRunOptions;
-}>;
-
-const serializeElement = (
-	element: Element,
-	state: SerializerState,
-):
-	| {
-			type: "inline";
-			children: ParagraphChild[];
-	  }
-	| {
-			type: "block";
-			children: FileChild;
-	  } => {
-	const serializer = serializers.find((s) => {
-		const isMatch = is(element, s.selector);
-		return isMatch;
-	});
-
-	const serialized = serializer?.serialize(element);
-
-	const newTextModifiers: IRunOptions = {
-		...state.textModifiers,
-		...serialized?.textModifier,
-	} as const;
-
-	// Should return a block or inline element
-
-	const serializeChildren = (htmlNodes: ChildNode[]) => {
-		const children = serializeNodes(htmlNodes, {
-			...state,
-			textModifiers: newTextModifiers,
-		});
-		return children.filter((child) => child !== undefined);
-	};
-
-	if (serialized?.createBlock) {
-		const block = serialized.createBlock(serializeChildren, newTextModifiers);
-		return {
-			type: "block" as const,
-			children: block,
-		};
+const getNodeTitle = (node: TreeNode): string => {
+	const stateString = JSON.stringify(node.state);
+	if (node.data?.element.type === ElementType.Text) {
+		return `Text - State: ${stateString} - "${node.data?.element.data}"`;
+	}
+	if (node.data?.element.type === ElementType.Tag) {
+		return `${node.data?.element.tagName} - State: ${stateString}`;
 	}
 
-	if (serialized?.createInline) {
-		const inline = serialized.createInline(serializeChildren, newTextModifiers);
-		return {
-			type: "inline" as const,
-			children: Array.isArray(inline) ? inline : [inline],
-		};
-	}
-
-	// In case of no serializer found, we fallback to just rendering the children
-
-	// return serializeChildren(element.children);
-	return {
-		type: "inline" as const,
-		children: serializeChildren(element.children),
-	};
+	return `Unknown ${node.type} - State: ${stateString}`;
 };
 
-const serializeNode = (element: ChildNode, state: SerializerState) => {
-	let block: FileChild | null = null;
-	let inlineNodes: ParagraphChild[] = [];
+type DebugTreeNode = (string | DebugTreeNode)[];
 
-	switch (element.type) {
-		case ElementType.Text:
-			const textRun = new TextRun({
-				...state.textModifiers,
-				text: element.data,
-			});
-			inlineNodes = [textRun];
-			break;
-
-		case ElementType.Tag:
-			const serialized = serializeElement(element, state);
-			if (serialized.type === "block") {
-				block = serialized.children;
-			} else if (serialized.type === "inline") {
-				inlineNodes = serialized.children;
-			}
-			break;
-
-		default:
-			break;
-	}
-
-	// if (block) {
-	// 	return block;
-	// }
-	//
-	// if (inlineNodes.length > 0) {
-	// 	const paragraph = new Paragraph({
-	// 		children: inlineNodes,
-	// 	});
-	// 	return paragraph;
-	// }
-};
-
-const serializeNodes = (elements: ChildNode[], state: SerializerState) => {
-	return elements.map((element) => {
-		return serializeNode(element, state);
+const buildDebugTree = (elements: TreeNode[]) => {
+	const debugTree: DebugTreeNode = elements.flatMap((node) => {
+		const title = getNodeTitle(node);
+		if (node.children.length > 0) {
+			return [title, buildDebugTree(node.children)];
+		}
+		return title;
 	});
+
+	return debugTree;
 };
 
 export const generateDocx = async (html: string) => {
 	const dom = await parseHtml(html);
 
-	// console.log("dom", dom);
-	const docxElements = serialize(dom).flat();
+	const docxStructuredTree = generateDocxStructuredTree(dom);
+	const serializedDocxTree = serializeDocxStructuredTree(docxStructuredTree);
 
-	// console.log("docxElements", docxElements);
-	// const doc = new Document({
-	// 	sections: [
-	// 		{
-	// 			children: [
-	// 				new Paragraph({
-	// 					children: docxElements,
-	// 				}),
-	// 			],
-	// 		},
-	// 	],
-	// });
+	// console.log("docxStructuredTree", docxStructuredTree);
+	const debugTree = buildDebugTree(docxStructuredTree);
+	console.log(treeify(debugTree));
 
 	const doc = new Document({
-		sections: [],
+		sections: [
+			{
+				children: serializedDocxTree,
+			},
+		],
 	});
 
+	// TODO: Make sure this can work in browser
 	return Packer.toBuffer(doc);
 };
+
+// type SerializerState = Readonly<{
+// 	readonly textModifiers: IRunOptions;
+// }>;
+//
+// const serializeElement = (
+// 	element: Element,
+// 	state: SerializerState,
+// ):
+// 	| {
+// 			type: "inline";
+// 			children: ParagraphChild[];
+// 	  }
+// 	| {
+// 			type: "block";
+// 			children: FileChild;
+// 	  } => {
+// 	const serializer = serializers.find((s) => {
+// 		const isMatch = is(element, s.selector);
+// 		return isMatch;
+// 	});
+//
+// 	const serialized = serializer?.serialize(element);
+//
+// 	const newTextModifiers: IRunOptions = {
+// 		...state.textModifiers,
+// 		...serialized?.textModifier,
+// 	} as const;
+//
+// 	// Should return a block or inline element
+//
+// 	const serializeChildren = (htmlNodes: ChildNode[]) => {
+// 		const children = serializeNodes(htmlNodes, {
+// 			...state,
+// 			textModifiers: newTextModifiers,
+// 		});
+// 		return children.filter((child) => child !== undefined);
+// 	};
+//
+// 	if (serialized?.createBlock) {
+// 		const block = serialized.createBlock(serializeChildren, newTextModifiers);
+// 		return {
+// 			type: "block" as const,
+// 			children: block,
+// 		};
+// 	}
+//
+// 	if (serialized?.createInline) {
+// 		const inline = serialized.createInline(serializeChildren, newTextModifiers);
+// 		return {
+// 			type: "inline" as const,
+// 			children: Array.isArray(inline) ? inline : [inline],
+// 		};
+// 	}
+//
+// 	// In case of no serializer found, we fallback to just rendering the children
+//
+// 	// return serializeChildren(element.children);
+// 	return {
+// 		type: "inline" as const,
+// 		children: serializeChildren(element.children),
+// 	};
+// };
+//
+// const serializeNode = (element: ChildNode, state: SerializerState) => {
+// 	let block: FileChild | null = null;
+// 	let inlineNodes: ParagraphChild[] = [];
+//
+// 	switch (element.type) {
+// 		case ElementType.Text:
+// 			const textRun = new TextRun({
+// 				...state.textModifiers,
+// 				text: element.data,
+// 			});
+// 			inlineNodes = [textRun];
+// 			break;
+//
+// 		case ElementType.Tag:
+// 			const serialized = serializeElement(element, state);
+// 			if (serialized.type === "block") {
+// 				block = serialized.children;
+// 			} else if (serialized.type === "inline") {
+// 				inlineNodes = serialized.children;
+// 			}
+// 			break;
+//
+// 		default:
+// 			break;
+// 	}
+//
+// 	// if (block) {
+// 	// 	return block;
+// 	// }
+// 	//
+// 	// if (inlineNodes.length > 0) {
+// 	// 	const paragraph = new Paragraph({
+// 	// 		children: inlineNodes,
+// 	// 	});
+// 	// 	return paragraph;
+// 	// }
+// };
+//
+// const serializeNodes = (elements: ChildNode[], state: SerializerState) => {
+// 	return elements.map((element) => {
+// 		return serializeNode(element, state);
+// 	});
+// };
+//
+// export const generateDocx = async (html: string) => {
+// 	const dom = await parseHtml(html);
+//
+// 	// console.log("dom", dom);
+// 	const docxElements = serialize(dom).flat();
+//
+// 	// console.log("docxElements", docxElements);
+// 	// const doc = new Document({
+// 	// 	sections: [
+// 	// 		{
+// 	// 			children: [
+// 	// 				new Paragraph({
+// 	// 					children: docxElements,
+// 	// 				}),
+// 	// 			],
+// 	// 		},
+// 	// 	],
+// 	// });
+//
+// 	const doc = new Document({
+// 		sections: [],
+// 	});
+//
+// 	return Packer.toBuffer(doc);
+// };

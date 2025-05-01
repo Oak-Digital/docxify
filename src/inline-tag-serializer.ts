@@ -7,12 +7,12 @@ export abstract class InlineTagSerializer
 	extends AbstractTagSerializer
 	implements ITagSerializer
 {
-	getDisplay(node: Element): "inline" {
+	getDisplay(node: Element | undefined): "inline" {
 		return "inline";
 	}
 
 	serialize(
-		node: Element,
+		node: Element | undefined,
 		runOptions: IRunOptions,
 		children: ParagraphChild[],
 	): ParagraphChild[] | FileChild {

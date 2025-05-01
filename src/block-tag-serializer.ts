@@ -7,12 +7,12 @@ export abstract class BlockTagSerializer
 	extends AbstractTagSerializer
 	implements ITagSerializer
 {
-	getDisplay(node: Element): "block" {
+	getDisplay(node: Element | undefined): "block" {
 		return "block";
 	}
 
 	abstract serialize(
-		node: Element,
+		node: Element | undefined,
 		runOptions: IRunOptions,
 		children: ParagraphChild[],
 	): FileChild;

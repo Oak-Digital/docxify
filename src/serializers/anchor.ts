@@ -10,11 +10,11 @@ export class AnchorSerializer
 	selector: string = "a";
 
 	serialize(
-		node: Element,
+		node: Element | undefined,
 		runOptions: IRunOptions,
 		children: ParagraphChild[],
 	): ParagraphChild[] {
-		const href = node.attributes.find((attr) => attr.name === "href")?.value;
+		const href = node?.attributes.find((attr) => attr.name === "href")?.value;
 		if (!href) {
 			return children;
 		}

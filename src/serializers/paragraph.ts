@@ -15,7 +15,7 @@ export class ParagraphSerializer
 	readonly selector: string = "p";
 
 	serialize(
-		node: Element,
+		node: Element | undefined,
 		runOptions: IRunOptions,
 		children: ParagraphChild[],
 	): FileChild {
