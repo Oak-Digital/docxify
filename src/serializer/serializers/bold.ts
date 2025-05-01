@@ -1,7 +1,7 @@
 import type { IRunOptions } from "docx";
-import type { ITagSerializer } from "../tag-serializer";
 import type { Element } from "domhandler";
-import { InlineTagSerializer } from "../inline-tag-serializer";
+import { InlineTagSerializer } from "../inline-tag-serializer.class";
+import type { ITagSerializer } from "../tag-serializer.interface";
 
 export class BoldSerializer
 	extends InlineTagSerializer

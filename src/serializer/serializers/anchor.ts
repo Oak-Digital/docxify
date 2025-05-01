@@ -1,7 +1,7 @@
 import { InternalHyperlink, type IRunOptions, type ParagraphChild } from "docx";
 import type { Element } from "domhandler";
-import { InlineTagSerializer } from "../inline-tag-serializer";
-import type { ITagSerializer } from "../tag-serializer";
+import { InlineTagSerializer } from "../inline-tag-serializer.class";
+import type { ITagSerializer } from "../tag-serializer.interface";
 
 export class AnchorSerializer
 	extends InlineTagSerializer

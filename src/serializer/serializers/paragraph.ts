@@ -5,8 +5,8 @@ import {
 	type ParagraphChild,
 } from "docx";
 import type { Element } from "domhandler";
-import type { ITagSerializer } from "../tag-serializer";
-import { BlockTagSerializer } from "../block-tag-serializer";
+import type { ITagSerializer } from "../tag-serializer.interface";
+import { BlockTagSerializer } from "../block-tag-serializer.class";
 
 export class ParagraphSerializer
 	extends BlockTagSerializer

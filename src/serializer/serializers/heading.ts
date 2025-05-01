@@ -4,8 +4,8 @@ import {
 	type IRunOptions,
 	type ParagraphChild,
 } from "docx";
-import { BlockTagSerializer } from "../block-tag-serializer";
-import type { ITagSerializer } from "../tag-serializer";
+import { BlockTagSerializer } from "../block-tag-serializer.class";
+import type { ITagSerializer } from "../tag-serializer.interface";
 import type { Element } from "domhandler";
 import { concat, join } from "string-ts";
 

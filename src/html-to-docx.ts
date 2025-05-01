@@ -15,7 +15,7 @@ import {
 import { is } from "css-select";
 import { AnchorSerializer } from "./serializer/serializers/anchor";
 import { flattenBlocksTree, type Node, type State } from "./serialized-tree";
-import type { ITagSerializer } from "./serializer/tag-serializer";
+import type { ITagSerializer } from "./serializer/tag-serializer.interface";
 import { getArrayRanges, replaceArrayRanges } from "./util/array-ranges";
 import { treeify } from "array-treeify";
 import { merge } from "lodash";
