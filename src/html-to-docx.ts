@@ -167,9 +167,11 @@ const serializeDocxStructuredTreeInlineElement = (
   }
 
   const serialized = foundSerializer.serialize(
-    element,
-    mergedState?.textModifiers ?? {},
-    serializedChildren,
+    {
+      node: element,
+      state: mergedState,
+      children: serializedChildren,
+    },
     // TODO: remove type assertion
   ) as ParagraphChild[];
 
@@ -191,9 +193,11 @@ const seriaizeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
     return serializeDocxStructuredTreeInlineElement(child, tree.state);
   });
   const serialized = serializer.serialize(
-    element,
-    tree.state?.textModifiers ?? {},
-    serializedChildren,
+    {
+      node: element,
+      state: tree.state,
+      children: serializedChildren,
+    },
     // TODO: remove type assertion
   ) as FileChild;
 
