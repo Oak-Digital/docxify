@@ -1,17 +1,17 @@
-import { parseArgs } from "util";
+import { parseArgs } from "node:util";
 import { generateDocx } from "../src/html-to-docx";
 
 const { values, positionals } = parseArgs({
-	args: Bun.argv,
-	strict: true,
-	allowPositionals: true,
+  args: Bun.argv,
+  strict: true,
+  allowPositionals: true,
 });
 
 const filePath = positionals[2];
 
 if (!filePath || !filePath.endsWith(".html")) {
-	console.error("Please provide a file path to an html file.");
-	process.exit(1);
+  console.error("Please provide a file path to an html file.");
+  process.exit(1);
 }
 
 const file = Bun.file(filePath);

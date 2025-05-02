@@ -4,14 +4,14 @@ import { InlineTagSerializer } from "../inline-tag-serializer.class";
 import type { ITagSerializer } from "../tag-serializer.interface";
 
 export class BoldSerializer
-	extends InlineTagSerializer
-	implements ITagSerializer
+  extends InlineTagSerializer
+  implements ITagSerializer
 {
-	selector: string = "b, strong";
+  selector = "b, strong";
 
-	getModifiers(node: Element | undefined): IRunOptions | undefined {
-		return {
-			bold: true,
-		};
-	}
+  getModifiers(node: Element | undefined): IRunOptions | undefined {
+    return {
+      bold: true,
+    };
+  }
 }

@@ -1,19 +1,19 @@
+import type { FileChild, IRunOptions, ParagraphChild } from "docx";
 import type { Element } from "domhandler";
-import type { ITagSerializer } from "./tag-serializer.interface";
-import type { IRunOptions, ParagraphChild, FileChild } from "docx";
 import { AbstractTagSerializer } from "./abstract-tag-serializer.class";
+import type { ITagSerializer } from "./tag-serializer.interface";
 
 export abstract class BlockTagSerializer
-	extends AbstractTagSerializer
-	implements ITagSerializer
+  extends AbstractTagSerializer
+  implements ITagSerializer
 {
-	getDisplay(node: Element | undefined): "block" {
-		return "block";
-	}
+  getDisplay(node: Element | undefined): "block" {
+    return "block";
+  }
 
-	abstract serialize(
-		node: Element | undefined,
-		runOptions: IRunOptions,
-		children: ParagraphChild[],
-	): FileChild;
+  abstract serialize(
+    node: Element | undefined,
+    runOptions: IRunOptions,
+    children: ParagraphChild[],
+  ): FileChild;
 }

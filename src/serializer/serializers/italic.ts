@@ -1,17 +1,17 @@
 import type { IRunOptions } from "docx";
-import type { ITagSerializer } from "../tag-serializer.interface";
 import type { Element } from "domhandler";
 import { InlineTagSerializer } from "../inline-tag-serializer.class";
+import type { ITagSerializer } from "../tag-serializer.interface";
 
 export class ItalicSerializer
-	extends InlineTagSerializer
-	implements ITagSerializer
+  extends InlineTagSerializer
+  implements ITagSerializer
 {
-	selector: string = "em, i";
+  selector = "em, i";
 
-	getModifiers(node: Element | undefined): IRunOptions | undefined {
-		return {
-			italics: true,
-		};
-	}
+  getModifiers(node: Element | undefined): IRunOptions | undefined {
+    return {
+      italics: true,
+    };
+  }
 }

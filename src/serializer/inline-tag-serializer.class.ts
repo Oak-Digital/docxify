@@ -1,21 +1,21 @@
+import type { FileChild, IRunOptions, ParagraphChild } from "docx";
 import type { Element } from "domhandler";
-import type { ITagSerializer } from "./tag-serializer.interface";
-import type { IRunOptions, ParagraphChild, FileChild } from "docx";
 import { AbstractTagSerializer } from "./abstract-tag-serializer.class";
+import type { ITagSerializer } from "./tag-serializer.interface";
 
 export abstract class InlineTagSerializer
-	extends AbstractTagSerializer
-	implements ITagSerializer
+  extends AbstractTagSerializer
+  implements ITagSerializer
 {
-	getDisplay(node: Element | undefined): "inline" {
-		return "inline";
-	}
+  getDisplay(node: Element | undefined): "inline" {
+    return "inline";
+  }
 
-	serialize(
-		node: Element | undefined,
-		runOptions: IRunOptions,
-		children: ParagraphChild[],
-	): ParagraphChild[] | FileChild {
-		return children;
-	}
+  serialize(
+    node: Element | undefined,
+    runOptions: IRunOptions,
+    children: ParagraphChild[],
+  ): ParagraphChild[] | FileChild {
+    return children;
+  }
 }
