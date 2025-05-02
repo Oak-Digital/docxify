@@ -1,4 +1,9 @@
-import { type IRunOptions, InternalHyperlink, type ParagraphChild } from "docx";
+import {
+  ExternalHyperlink,
+  type IRunOptions,
+  InternalHyperlink,
+  type ParagraphChild,
+} from "docx";
 import type { Element } from "domhandler";
 import type { SerializeOptions } from "../../types";
 import { InlineTagSerializer } from "../inline-tag-serializer.class";
@@ -16,10 +21,20 @@ export class AnchorSerializer
     if (!href) {
       return children;
     }
+    if (!href.startsWith("#")) {
+      // return children;
+      return [
+        new ExternalHyperlink({
+          link: href,
+          children,
+        }),
+      ];
+    }
+    const anchorName = href.substring(1);
     return [
       new InternalHyperlink({
-        anchor: href,
-        children: children,
+        anchor: anchorName,
+        children,
       }),
     ];
   }
