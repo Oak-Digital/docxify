@@ -13,7 +13,6 @@ import type { ChildNode, Element } from "domhandler";
 import { ElementType } from "htmlparser2";
 import { merge } from "lodash";
 import { parseHtml } from "./html-to-json";
-import { type Node, type State, flattenBlocksTree } from "./serialized-tree";
 import { AnchorSerializer } from "./serializer/tag/serializers/anchor";
 import { BoldSerializer } from "./serializer/tag/serializers/bold";
 import { HeadingSerializer } from "./serializer/tag/serializers/heading";
@@ -21,6 +20,10 @@ import { ItalicSerializer } from "./serializer/tag/serializers/italic";
 import { ParagraphSerializer } from "./serializer/tag/serializers/paragraph";
 import type { ITagSerializer } from "./serializer/tag/tag-serializer.interface";
 import { getArrayRanges, replaceArrayRanges } from "./util/array-ranges";
+import {
+  extractToTopLevel,
+  type StateDataTreeNode,
+} from "./util/state-data-tree";
 
 const serializers = [
   new HeadingSerializer(),
@@ -44,18 +47,24 @@ const getSerializer = (element: Element): ITagSerializer | null => {
 };
 
 type NodeData = {
-  element: ChildNode;
+  element?: ChildNode;
+  type: "block" | "inline";
 };
 
-type TreeNode = Node<NodeData>;
+type NodeState = {
+  textModifiers?: IRunOptions;
+};
+
+// type TreeNode = Node<NodeData>;
+type TreeNode = StateDataTreeNode<NodeData, NodeState>;
 
 const buildTree = (node: ChildNode): TreeNode | null => {
   if (node.type === ElementType.Text) {
     return {
-      type: "inline",
       children: [],
       data: {
         element: node,
+        type: "inline",
       },
     };
   }
@@ -76,12 +85,12 @@ const buildTree = (node: ChildNode): TreeNode | null => {
 
   const tree: TreeNode = {
     children: childNodes,
-    type: display,
     state: {
       textModifiers,
     },
     data: {
       element: node,
+      type: display,
     },
   };
 
@@ -90,7 +99,7 @@ const buildTree = (node: ChildNode): TreeNode | null => {
 
 const wrapTopLevelInlineElements = (elements: TreeNode[]): TreeNode[] => {
   const inlineRanges = getArrayRanges(elements, (element) => {
-    return element.type === "inline";
+    return element.data?.type === "inline";
   });
 
   const wrappedElements = replaceArrayRanges(
@@ -99,8 +108,10 @@ const wrapTopLevelInlineElements = (elements: TreeNode[]): TreeNode[] => {
     (inlineElements) => {
       return [
         {
-          type: "block",
           children: inlineElements,
+          data: {
+            type: "block",
+          },
         },
       ] as const;
     },
@@ -113,7 +124,8 @@ const generateDocxStructuredTree = (elements: ChildNode[]): TreeNode[] => {
   const trees = elements
     .map((element) => buildTree(element))
     .filter((tree) => tree !== null);
-  const flattened = trees.flatMap((tree) => flattenBlocksTree(tree));
+  const isBlock = (tree: TreeNode) => tree.data?.type === "block";
+  const flattened = trees.flatMap((tree) => extractToTopLevel(tree, isBlock));
   // Top level inline elements must be wrapped in paragraphs.
   // This is a requirement of docx.
   const wrapped = wrapTopLevelInlineElements(flattened);
@@ -122,7 +134,7 @@ const generateDocxStructuredTree = (elements: ChildNode[]): TreeNode[] => {
 
 const serializeDocxStructuredTreeInlineElement = (
   tree: TreeNode,
-  parentState: State | undefined,
+  parentState: NodeState | undefined,
 ): ParagraphChild[] => {
   const element = tree.data?.element;
 
@@ -190,14 +202,14 @@ const seriaizeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
 
 const serializeDocxStructuredTree = (docxStructuredTree: TreeNode[]) => {
   // TODO: wrap top level inline elements in paragraphs
-  if (docxStructuredTree.some((node) => node.type === "inline")) {
+  if (docxStructuredTree.some((node) => node.data?.type === "inline")) {
     console.debug("tree", docxStructuredTree);
     throw new Error("Inline elements are not supported for top level yet");
   }
 
   const blocks = docxStructuredTree
     .map((node) => {
-      if (node.type === "block") {
+      if (node.data?.type === "block") {
         return seriaizeDocxStructuredTreeBlock(node);
       }
       return null;
@@ -209,14 +221,14 @@ const serializeDocxStructuredTree = (docxStructuredTree: TreeNode[]) => {
 
 const getNodeTitle = (node: TreeNode): string => {
   const stateString = JSON.stringify(node.state);
-  if (node.data?.element.type === ElementType.Text) {
-    return `Text - State: ${stateString} - "${node.data?.element.data}"`;
+  if (node.data?.element?.type === ElementType.Text) {
+    return `Text - State: ${stateString} - "${node.data.element.data}"`;
   }
-  if (node.data?.element.type === ElementType.Tag) {
-    return `${node.data?.element.tagName} - State: ${stateString}`;
+  if (node.data?.element?.type === ElementType.Tag) {
+    return `${node.data.element.tagName} - State: ${stateString}`;
   }
 
-  return `Unknown ${node.type} - State: ${stateString}`;
+  return `Unknown ${node.data?.type} - State: ${stateString}`;
 };
 
 type DebugTreeNode = (string | DebugTreeNode)[];
