@@ -4,9 +4,14 @@
 	"type": "module",
 	"packageManager": "bun@1.1.38",
 	"scripts": {
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"format:check": "biome format",
+		"format:fix": "biome format --fix",
+		"lint:check": "biome check",
+		"lint:fix": "biome check --fix"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
 		"@types/bun": "latest",
 		"@types/lodash": "^4.17.16"
 	},
