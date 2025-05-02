@@ -14,12 +14,12 @@ import { ElementType } from "htmlparser2";
 import { merge } from "lodash";
 import { parseHtml } from "./html-to-json";
 import { type Node, type State, flattenBlocksTree } from "./serialized-tree";
-import { AnchorSerializer } from "./serializer/serializers/anchor";
-import { BoldSerializer } from "./serializer/serializers/bold";
-import { HeadingSerializer } from "./serializer/serializers/heading";
-import { ItalicSerializer } from "./serializer/serializers/italic";
-import { ParagraphSerializer } from "./serializer/serializers/paragraph";
-import type { ITagSerializer } from "./serializer/tag-serializer.interface";
+import { AnchorSerializer } from "./serializer/tag/serializers/anchor";
+import { BoldSerializer } from "./serializer/tag/serializers/bold";
+import { HeadingSerializer } from "./serializer/tag/serializers/heading";
+import { ItalicSerializer } from "./serializer/tag/serializers/italic";
+import { ParagraphSerializer } from "./serializer/tag/serializers/paragraph";
+import type { ITagSerializer } from "./serializer/tag/tag-serializer.interface";
 import { getArrayRanges, replaceArrayRanges } from "./util/array-ranges";
 
 const serializers = [
