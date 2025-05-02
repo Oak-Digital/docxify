@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { extractToTopLevel, type StateDataTreeNode } from "./state-data-tree";
+import { type StateDataTreeNode, extractToTopLevel } from "./state-data-tree";
 
 type BasicData = {
   type?: "block" | "inline";

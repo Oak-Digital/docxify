@@ -21,8 +21,8 @@ import { ParagraphSerializer } from "./serializer/tag/serializers/paragraph";
 import type { ITagSerializer } from "./serializer/tag/tag-serializer.interface";
 import { getArrayRanges, replaceArrayRanges } from "./util/array-ranges";
 import {
-  extractToTopLevel,
   type StateDataTreeNode,
+  extractToTopLevel,
 } from "./util/state-data-tree";
 
 const serializers = [
