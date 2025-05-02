@@ -13,6 +13,8 @@ import type { ChildNode, Element } from "domhandler";
 import { ElementType } from "htmlparser2";
 import { merge } from "lodash";
 import { parseHtml } from "./html-to-json";
+import type { IFallthroughSerializer } from "./serializer/fallthrough/fallthrough-serialzier.interface";
+import { IdSerializer } from "./serializer/fallthrough/serializers/id";
 import { AnchorSerializer } from "./serializer/tag/serializers/anchor";
 import { BoldSerializer } from "./serializer/tag/serializers/bold";
 import { HeadingSerializer } from "./serializer/tag/serializers/heading";
@@ -33,6 +35,10 @@ const serializers = [
   new AnchorSerializer(),
   // new FallbackSerializer(),
 ] as const satisfies ITagSerializer[];
+
+const fallthroughSerializers = [
+  new IdSerializer(),
+] as const satisfies IFallthroughSerializer[];
 
 const getSerializer = (element: Element): ITagSerializer | null => {
   for (const serializer of serializers) {
@@ -161,16 +167,33 @@ const serializeDocxStructuredTreeInlineElement = (
 
   const foundSerializer = element ? getSerializer(element) : null;
 
+  const foundFallthroughSerializers = fallthroughSerializers.filter((s) => {
+    const isMatch = is(element, s.selector);
+    return isMatch;
+  });
+
+  const serializedChildrenWithFallthrough = foundFallthroughSerializers.reduce(
+    (acc, serializer) => {
+      const serialized = serializer.serialize({
+        node: element,
+        state: mergedState,
+        children: acc,
+      });
+      return serialized;
+    },
+    serializedChildren,
+  );
+
   if (!foundSerializer) {
     // just return serialized children
-    return serializedChildren;
+    return serializedChildrenWithFallthrough;
   }
 
   const serialized = foundSerializer.serialize(
     {
       node: element,
       state: mergedState,
-      children: serializedChildren,
+      children: serializedChildrenWithFallthrough,
     },
     // TODO: remove type assertion
   ) as ParagraphChild[];
@@ -178,7 +201,7 @@ const serializeDocxStructuredTreeInlineElement = (
   return serialized;
 };
 
-const seriaizeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
+const serializeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
   const element = tree.data?.element;
   if (element && element.type !== ElementType.Tag) {
     throw new Error("Element is not a tag");
@@ -189,14 +212,34 @@ const seriaizeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
   // Fallback to default serializer for blocks
   const serializer = foundSerializer ?? new ParagraphSerializer();
 
+  const foundFallthroughSerializers = element
+    ? fallthroughSerializers.filter((s) => {
+        const isMatch = is(element, s.selector);
+        return isMatch;
+      })
+    : [];
+
   const serializedChildren = tree.children.flatMap((child) => {
     return serializeDocxStructuredTreeInlineElement(child, tree.state);
   });
+
+  const serializedChildrenWithFallthrough = foundFallthroughSerializers.reduce(
+    (acc, serializer) => {
+      const serialized = serializer.serialize({
+        node: element,
+        state: tree.state,
+        children: acc,
+      });
+      return serialized;
+    },
+    serializedChildren,
+  );
+
   const serialized = serializer.serialize(
     {
       node: element,
       state: tree.state,
-      children: serializedChildren,
+      children: serializedChildrenWithFallthrough,
     },
     // TODO: remove type assertion
   ) as FileChild;
@@ -214,7 +257,7 @@ const serializeDocxStructuredTree = (docxStructuredTree: TreeNode[]) => {
   const blocks = docxStructuredTree
     .map((node) => {
       if (node.data?.type === "block") {
-        return seriaizeDocxStructuredTreeBlock(node);
+        return serializeDocxStructuredTreeBlock(node);
       }
       return null;
     })
