@@ -1,5 +1,8 @@
 # docxify
 
+> [!NOTE]
+> This library is still in development and the documentation might not be complete and the api may not be implemented completely yet,
+
 Create DOCX files from HTML. Works in browser, Node.js and Bun (and probably other runtimes as well).
 
 ## Motivation
@@ -33,6 +36,24 @@ yarn add @oak-digital/docxify
 
 ```bash
 npm install @oak-digital/docxify
+```
+
+**Generate a document**
+
+```ts
+const html = `<p>
+    Hello world
+</p>`;
+
+// Node / Bun
+const docx = await generateDocx(html).toBuffer();
+fs.writeFileSync("output.docx", docx);
+
+// Browser
+const docx = await generateDocx(html).toBlob();
+// Download
+const file = URL.createObjectUrl(docx);
+window.location.assign(file);
 ```
 
 ## License
