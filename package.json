@@ -1,6 +1,7 @@
 {
   "name": "@oak-digital/docxify",
   "version": "0.0.0-alpha.0",
+  "license": "MIT",
   "module": "src/index.ts",
   "type": "module",
   "packageManager": "bun@1.1.34",

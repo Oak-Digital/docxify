@@ -34,3 +34,7 @@ yarn add @oak-digital/docxify
 ```bash
 npm install @oak-digital/docxify
 ```
+
+## License
+
+This library is licensed under the [MIT license](./LICENSE)
