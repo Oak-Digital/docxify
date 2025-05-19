@@ -20,17 +20,17 @@ In contrast to projects like [prosemirror-docx](https://github.com/curvenote/pro
 Install with your package manager
 
 ```bash
-bun add docxify
+bun add @oak-digital/docxify
 ```
 
 ```bash
-pnpm add docxify
+pnpm add @oak-digital/docxify
 ```
 
 ```bash
-yarn add docxify
+yarn add @oak-digital/docxify
 ```
 
 ```bash
-npm install docxify
+npm install @oak-digital/docxify
 ```

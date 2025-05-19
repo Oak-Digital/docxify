@@ -1,5 +1,5 @@
 {
-  "name": "docxify",
+  "name": "@oak-digital/docxify",
   "version": "0.0.0-alpha.0",
   "module": "src/index.ts",
   "type": "module",
