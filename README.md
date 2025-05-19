@@ -56,6 +56,17 @@ const file = URL.createObjectUrl(docx);
 window.location.assign(file);
 ```
 
+## Concepts
+
+### Serializers
+
+A serializer is a class that handles an html element and does one or more of the following
+
+- creates either a block or inline docx element.
+- updates the text modifiers for this and child elements.
+
+When a serializer creates a docx element it must return an instance of a [`docx`](https://github.com/dolanmiu/docx) class.
+
 ## License
 
 This library is licensed under the [MIT license](./LICENSE)
