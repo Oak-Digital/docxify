@@ -1,5 +1,5 @@
 {
-  "name": "html-docx",
+  "name": "docxify",
   "module": "src/index.ts",
   "type": "module",
   "packageManager": "bun@1.1.34",
