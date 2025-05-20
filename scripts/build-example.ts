@@ -17,7 +17,7 @@ if (!filePath || !filePath.endsWith(".html")) {
 const file = Bun.file(filePath);
 const fileContent = await file.text();
 
-const docx = await generateDocx(fileContent);
+const docx = await (await generateDocx(fileContent)).toBuffer();
 
 // change extension of filePath to .docx
 const docxFilePath = filePath.replace(/\.html$/, ".docx");
