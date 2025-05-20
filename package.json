@@ -2,10 +2,19 @@
   "name": "@oak-digital/docxify",
   "version": "0.0.0-alpha.0",
   "license": "MIT",
-  "module": "src/index.ts",
   "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "packageManager": "bun@1.1.34",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "files": ["dist"],
   "scripts": {
+    "build": "bun run scripts/build.ts",
     "typecheck": "tsc --noEmit",
     "format:check": "biome format",
     "format:fix": "biome format --fix",
@@ -15,7 +24,8 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/bun": "latest",
-    "@types/lodash": "^4.17.16"
+    "@types/lodash": "^4.17.16",
+    "bun-plugin-dts": "^0.3.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -28,5 +38,11 @@
     "htmlparser2": "^10.0.0",
     "lodash": "^4.17.21",
     "string-ts": "^2.2.1"
-  }
+  },
+  "homepage": "https://github.com/Oak-Digital/docxify",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Oak-Digital/docxify.git"
+  },
+  "bugs": "https://github.com/Oak-Digital/docxify/issues"
 }
