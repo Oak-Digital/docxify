@@ -15,6 +15,7 @@
   "files": ["dist"],
   "scripts": {
     "build": "bun run scripts/build.ts",
+    "build:ci": "bun run scripts/build.ts --ci",
     "typecheck": "tsc --noEmit",
     "format:check": "biome format",
     "format:fix": "biome format --fix",
