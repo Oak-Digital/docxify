@@ -22,14 +22,16 @@ export class HeadingSerializer
 {
   readonly selector: string = elements.join(", ");
 
-  serialize(options: SerializeOptions<Element>): FileChild {
+  serialize(options: SerializeOptions<Element>): FileChild[] {
     const { node, children } = options;
     const number = Number.parseInt(node?.tagName.slice(1) ?? "1", 10) || 1;
     const level = levels.find((level) => level === number) ?? 1;
 
-    return new Paragraph({
-      heading: concat("Heading", level.toString() as `${typeof level}`),
-      children,
-    });
+    return [
+      new Paragraph({
+        heading: concat("Heading", level.toString() as `${typeof level}`),
+        children,
+      }),
+    ];
   }
 }
