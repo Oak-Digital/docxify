@@ -14,19 +14,23 @@
   },
   "files": ["dist"],
   "scripts": {
+    "example": "bun run scripts/build-example.ts",
     "build": "bun run scripts/build.ts",
     "build:ci": "bun run scripts/build.ts --ci",
     "typecheck": "tsc --noEmit",
     "format:check": "biome format",
     "format:fix": "biome format --fix",
     "lint:check": "biome check",
-    "lint:fix": "biome check --fix"
+    "lint:fix": "biome check --fix",
+    "docs:serve": "docsify serve docs",
+    "docs:build": "docsify build docs"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/bun": "latest",
     "@types/lodash": "^4.17.16",
-    "bun-plugin-dts": "^0.3.0"
+    "bun-plugin-dts": "^0.3.0",
+    "docsify-cli": "^4.4.4"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
