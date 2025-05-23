@@ -35,6 +35,10 @@ export class TableRowSerializer
     return [
       new TableRow({
         children,
+        // height: {
+        //   value: 5000,
+        //   rule: "exact",
+        // },
       }),
     ];
   }

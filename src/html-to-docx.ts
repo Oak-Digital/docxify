@@ -20,6 +20,12 @@ import { BoldSerializer } from "./serializer/tag/serializers/bold";
 import { HeadingSerializer } from "./serializer/tag/serializers/heading";
 import { ItalicSerializer } from "./serializer/tag/serializers/italic";
 import { ParagraphSerializer } from "./serializer/tag/serializers/paragraph";
+import {
+  TableCellSerializer,
+  TableRowSerializer,
+  TableSerializer,
+  tableSerializers,
+} from "./serializer/tag/serializers/table";
 import type { ITagSerializer } from "./serializer/tag/tag-serializer.interface";
 import { getArrayRanges, replaceArrayRanges } from "./util/array-ranges";
 import {
@@ -30,6 +36,7 @@ import {
 type Serializers = ITagSerializer[];
 
 const serializers = [
+  ...tableSerializers,
   new HeadingSerializer(),
   new ParagraphSerializer(),
   new BoldSerializer(),
@@ -59,7 +66,13 @@ const getSerializer = (
 
 type NodeData = {
   element?: ChildNode;
-  type: "block" | "inline";
+  type:
+    | "block"
+    | "inline"
+    | "table-row"
+    | "table-cell"
+    | "table"
+    | "table-child";
 };
 
 type NodeState = {
@@ -131,26 +144,94 @@ const wrapTopLevelInlineElements = (elements: TreeNode[]): TreeNode[] => {
   return wrappedElements;
 };
 
+const rebuildTree = (
+  elements: TreeNode[],
+  callback: (nodes: TreeNode[]) => TreeNode[],
+): TreeNode[] => {
+  const newTree = elements.flatMap((node) => {
+    const newChildren = rebuildTree(node.children, callback);
+    const newNode = {
+      ...node,
+      children: newChildren,
+    };
+
+    return [newNode];
+  });
+
+  const newTreeModifiedTree = callback(newTree);
+
+  return newTreeModifiedTree;
+};
+
+const wrapTableCellInlineElements = (elements: TreeNode[]): TreeNode[] => {
+  const newElements = rebuildTree(elements, (nodes) => {
+    return nodes.flatMap((node) => {
+      if (node.data?.type !== "table-cell") {
+        return node;
+      }
+
+      // now we have a table cell which should be wrapped in a paragraph
+      const wrapped = wrapTopLevelInlineElements(node.children);
+
+      return {
+        ...node,
+        children: wrapped,
+      };
+    });
+  });
+
+  return newElements;
+};
+
 const generateDocxStructuredTree = (elements: ChildNode[]): TreeNode[] => {
   const trees = elements
     .map((element) => buildTree(element))
     .filter((tree) => tree !== null);
   const isBlock = (tree: TreeNode) => tree.data?.type === "block";
-  const flattened = trees.flatMap((tree) => extractToTopLevel(tree, isBlock));
+  const shouldExtract = (node: TreeNode, child: TreeNode) => {
+    // we do not want to extract anything out of a table cell since they support having blocks inside them
+    if (node.data?.type === "table-cell") {
+      return false;
+    }
+
+    // we want to extract everything out of a table row except for the table cells
+    if (node.data?.type === "table-row") {
+      return child.data?.type !== "table-cell";
+    }
+
+    if (node.data?.type === "table-child") {
+      return child.data?.type !== "table-row";
+    }
+
+    // we also want to extract everything but table rows and thead, tbody, tfoot out of a table
+    if (node.data?.type === "table") {
+      // return child.data?.type !== "table-row";
+      return (
+        child.data?.type !== "table-row" && child.data?.type !== "table-child"
+      );
+    }
+
+    return isBlock(child);
+  };
+  const flattened = trees.flatMap((tree) =>
+    extractToTopLevel(tree, shouldExtract),
+  );
+  // Also wrap top level inline elements in table cells
+  const withWrappedTableCells = wrapTableCellInlineElements(flattened);
+
   // Top level inline elements must be wrapped in paragraphs.
   // This is a requirement of docx.
-  const wrapped = wrapTopLevelInlineElements(flattened);
+  const wrapped = wrapTopLevelInlineElements(withWrappedTableCells);
+  // const wrapped = wrapTopLevelInlineElements(flattened);
+
   return wrapped;
 };
 
-const serializeDocxStructuredTreeInlineElement = (
+const serializeDocxStructuredTreeNode = (
   tree: TreeNode,
-  parentState: NodeState | undefined,
-): ParagraphChild[] => {
+  parentState?: NodeState | undefined,
+) => {
   const element = tree.data?.element;
-
-  // Base case
-
   const mergedState = merge({}, parentState, tree.state);
 
   if (element?.type === ElementType.Text) {
@@ -161,53 +242,6 @@ const serializeDocxStructuredTreeInlineElement = (
       }),
     ];
   }
-
-  if (element?.type !== ElementType.Tag) {
-    throw new Error("Elements which are not a tag are not supported for now");
-  }
-
-  const serializedChildren = tree.children.flatMap((child) => {
-    return serializeDocxStructuredTreeInlineElement(child, mergedState);
-  });
-
-  const foundSerializer = element ? getSerializer(element, serializers) : null;
-
-  const foundFallthroughSerializers = fallthroughSerializers.filter((s) => {
-    const isMatch = is(element, s.selector);
-    return isMatch;
-  });
-
-  const serializedChildrenWithFallthrough = foundFallthroughSerializers.reduce(
-    (acc, serializer) => {
-      const serialized = serializer.serialize({
-        node: element,
-        state: mergedState,
-        children: acc,
-      });
-      return serialized;
-    },
-    serializedChildren,
-  );
-
-  if (!foundSerializer) {
-    // just return serialized children
-    return serializedChildrenWithFallthrough;
-  }
-
-  const serialized = foundSerializer.serialize(
-    {
-      node: element,
-      state: mergedState,
-      children: serializedChildrenWithFallthrough,
-    },
-    // TODO: remove type assertion
-  ) as ParagraphChild[];
-
-  return serialized;
-};
-
-const serializeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
-  const element = tree.data?.element;
   if (element && element.type !== ElementType.Tag) {
     throw new Error("Element is not a tag");
   }
@@ -225,7 +259,8 @@ const serializeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
     : [];
 
   const serializedChildren = tree.children.flatMap((child) => {
-    return serializeDocxStructuredTreeInlineElement(child, tree.state);
+    // return serializeDocxStructuredTreeInlineElement(child, tree.state);
+    return serializeDocxStructuredTreeNode(child, mergedState);
   });
 
   const serializedChildrenWithFallthrough = foundFallthroughSerializers.reduce(
@@ -247,7 +282,7 @@ const serializeDocxStructuredTreeBlock = (tree: TreeNode): FileChild => {
       children: serializedChildrenWithFallthrough,
     },
     // TODO: remove type assertion
-  ) as FileChild;
+  );
 
   return serialized;
 };
@@ -260,11 +295,8 @@ const serializeDocxStructuredTree = (docxStructuredTree: TreeNode[]) => {
   }
 
   const blocks = docxStructuredTree
-    .map((node) => {
-      if (node.data?.type === "block") {
-        return serializeDocxStructuredTreeBlock(node);
-      }
-      return null;
+    .flatMap((node) => {
+      return serializeDocxStructuredTreeNode(node);
     })
     .filter((block) => block !== null);
 
@@ -301,16 +333,16 @@ export const generateDocx = async (html: string) => {
   const dom = await parseHtml(html);
 
   const docxStructuredTree = generateDocxStructuredTree(dom);
-  const serializedDocxTree = serializeDocxStructuredTree(docxStructuredTree);
-
   // console.log("docxStructuredTree", docxStructuredTree);
   // const debugTree = buildDebugTree(docxStructuredTree);
   // console.log(treeify(debugTree));
+  const serializedDocxTree = serializeDocxStructuredTree(docxStructuredTree);
 
   const doc = new Document({
     sections: [
       {
-        children: serializedDocxTree,
+        // TODO: Do not use type assertion
+        children: serializedDocxTree as FileChild[],
       },
     ],
   });

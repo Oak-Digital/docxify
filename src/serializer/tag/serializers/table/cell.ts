@@ -27,6 +27,9 @@ export class TableCellSerializer
     return [
       new TableCell({
         children: options.children,
+        // width: {
+        //   size: 5000,
+        // }
       }),
     ];
   }

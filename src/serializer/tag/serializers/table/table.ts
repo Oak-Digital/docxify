@@ -27,8 +27,10 @@ export class TableSerializer
       new Table({
         rows,
         width: {
+          type: "pct",
           size: "100%",
         },
+        layout: "fixed",
       }),
     ];
   }
