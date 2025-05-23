@@ -1,4 +1,10 @@
-import type { FileChild, IRunOptions, ParagraphChild } from "docx";
+import type {
+  FileChild,
+  IRunOptions,
+  ParagraphChild,
+  TableCell,
+  TableRow,
+} from "docx";
 import type { ChildNode, Element } from "domhandler";
 import type { SerializeOptions } from "../types";
 
@@ -10,7 +16,9 @@ export interface ITagSerializer {
    * if it is a block tag, it must return a `FileChild` in the `serialize` method
    * if it is an inline tag, it must return a `ParagraphChild` array in the `serialize` method
    */
-  getDisplay(node: Element | undefined): "inline" | "block";
+  getDisplay(
+    node: Element | undefined,
+  ): "inline" | "block" | "table-row" | "table-cell" | "table" | "table-child";
 
   /**
    * How this tag modifies text
@@ -18,5 +26,7 @@ export interface ITagSerializer {
    */
   getModifiers(node: Element | undefined): IRunOptions | undefined;
 
-  serialize(options: SerializeOptions<Element>): ParagraphChild[] | FileChild;
+  serialize(
+    options: SerializeOptions<Element>,
+  ): ParagraphChild[] | FileChild[] | TableRow[] | TableCell[];
 }

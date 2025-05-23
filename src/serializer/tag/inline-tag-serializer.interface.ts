@@ -1,4 +1,4 @@
-import type { IRunOptions, ParagraphChild } from "docx";
+import type { IRunOptions, ParagraphChild, TableCell, TableRow } from "docx";
 import type { Element } from "domhandler";
 import type { SerializeOptions } from "../types";
 import type { ITagSerializer } from "./tag-serializer.interface";

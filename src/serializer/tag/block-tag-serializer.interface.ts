@@ -19,7 +19,7 @@ export interface IBlockTagSerializer extends ITagSerializer {
    */
   getModifiers(node: Element | undefined): IRunOptions | undefined;
 
-  serialize(options: SerializeOptions<Element>): FileChild;
+  serialize(options: SerializeOptions<Element>): FileChild[];
 
   // /**
   //  * If the serializer handles some of the children, here you would return those not handled by the serializer.

@@ -18,12 +18,12 @@ const createEmptyNode = () => {
   } as const satisfies Node;
 };
 
-const isBlock = (node: Node) => {
-  if (!node.data?.type) {
+const isBlock = (node: Node, child: Node) => {
+  if (!child.data?.type) {
     console.error("Node has no type");
     return false;
   }
-  return node.data?.type === "block";
+  return child.data?.type === "block";
 };
 
 describe("extractToTopLevel", () => {
@@ -1085,6 +1085,58 @@ describe("extractToTopLevel", () => {
         },
         children: [],
         state: { textModifiers: { bold: false } },
+      },
+    ]);
+  });
+
+  it("should be possible to extract to top level based on current node and child", () => {
+    const node: Node = {
+      data: {
+        type: "block",
+        data: "1",
+      },
+      children: [
+        {
+          data: {
+            type: "inline",
+            data: "2",
+          },
+          children: [
+            {
+              data: {
+                type: "block",
+                data: "3",
+              },
+              children: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = extractToTopLevel(node, (node, child) => {
+      return child.data?.type === "block" && node.data?.type === "inline";
+    });
+
+    expect(result).toEqual([
+      {
+        ...node,
+        children: [
+          {
+            data: {
+              type: "inline",
+              data: "2",
+            },
+            children: [],
+          },
+          {
+            data: {
+              type: "block",
+              data: "3",
+            },
+            children: [],
+          },
+        ],
       },
     ]);
   });

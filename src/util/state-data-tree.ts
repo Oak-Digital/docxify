@@ -11,7 +11,10 @@ export const extractToTopLevel = <Data, State>(
   /**
    * When this function returns true, it means that the node should be extracted to the top level.
    */
-  predicate: (node: StateDataTreeNode<Data, State>) => boolean,
+  predicate: (
+    node: StateDataTreeNode<Data, State>,
+    child: StateDataTreeNode<Data, State>,
+  ) => boolean,
   state?: State,
 ): StateDataTreeNode<Data, State>[] => {
   const children = node.children;
@@ -54,7 +57,7 @@ export const extractToTopLevel = <Data, State>(
   let current: StateDataTreeNode<Data, State> = createCurrent(node);
 
   childrenExtracted.forEach((child, i) => {
-    const shouldExtract = predicate(child);
+    const shouldExtract = predicate(node, child);
 
     if (shouldExtract) {
       const cascadedState =
@@ -68,7 +71,7 @@ export const extractToTopLevel = <Data, State>(
 
       // if next is inline, create a new current
       const next = childrenExtracted[i + 1];
-      const shouldNextExtract = next ? predicate(next) : false;
+      const shouldNextExtract = next ? predicate(node, next) : false;
 
       if (next && !shouldNextExtract) {
         current = createCurrent(node);

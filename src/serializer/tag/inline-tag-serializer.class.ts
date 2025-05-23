@@ -1,4 +1,10 @@
-import type { FileChild, IRunOptions, ParagraphChild } from "docx";
+import type {
+  FileChild,
+  IRunOptions,
+  ParagraphChild,
+  TableCell,
+  TableRow,
+} from "docx";
 import type { Element } from "domhandler";
 import type { SerializeOptions } from "../types";
 import { AbstractTagSerializer } from "./abstract-tag-serializer.class";

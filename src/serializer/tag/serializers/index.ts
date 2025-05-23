@@ -1,3 +1,5 @@
+export * from "./table";
+
 export * from "./anchor";
 export * from "./bold";
 export * from "./heading";

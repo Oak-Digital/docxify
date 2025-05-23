@@ -12,5 +12,5 @@ export abstract class BlockTagSerializer
     return "block";
   }
 
-  abstract serialize(options: SerializeOptions<Element>): FileChild;
+  abstract serialize(options: SerializeOptions<Element>): FileChild[];
 }

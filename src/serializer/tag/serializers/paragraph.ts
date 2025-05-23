@@ -15,12 +15,14 @@ export class ParagraphSerializer
 {
   readonly selector: string = "p";
 
-  serialize(options: SerializeOptions<Element>): FileChild {
+  serialize(options: SerializeOptions<Element>): FileChild[] {
     const { node, children } = options;
-    return new Paragraph({
-      // TODO: find a way to pass the runOptions to the paragraph
-      // ...runOptions,
-      children,
-    });
+    return [
+      new Paragraph({
+        // TODO: find a way to pass the runOptions to the paragraph
+        // ...runOptions,
+        children,
+      }),
+    ];
   }
 }
