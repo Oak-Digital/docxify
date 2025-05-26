@@ -18,7 +18,7 @@ export abstract class AbstractTagSerializer implements ITagSerializer {
 
   abstract serialize(
     options: SerializeOptions<Element>,
-  ): FileChild | ParagraphChild[] | TableRow[] | TableCell[];
+  ): FileChild[] | ParagraphChild[] | TableRow[] | TableCell[];
 
   getModifiers(node: Element | undefined): IRunOptions | undefined {
     return undefined;
