@@ -329,9 +329,7 @@ const buildDebugTree = (elements: TreeNode[]) => {
   return debugTree;
 };
 
-export const generateDocx = async (html: string) => {
-  const dom = await parseHtml(html);
-
+export const generateDocxFromDom = async (dom: ChildNode[]) => {
   const docxStructuredTree = generateDocxStructuredTree(dom);
   // console.log("docxStructuredTree", docxStructuredTree);
   // const debugTree = buildDebugTree(docxStructuredTree);
@@ -355,4 +353,10 @@ export const generateDocx = async (html: string) => {
       return Packer.toBlob(doc);
     },
   };
+};
+
+export const generateDocx = async (html: string) => {
+  const dom = await parseHtml(html);
+
+  return generateDocxFromDom(dom);
 };
