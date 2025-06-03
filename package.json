@@ -16,7 +16,7 @@
   "scripts": {
     "example": "bun run scripts/build-example.ts",
     "build": "bun run scripts/build.ts",
-    "build:ci": "bun run scripts/build.ts --ci",
+    "build:ci": "bun run scripts/build.ts",
     "typecheck": "tsc --noEmit",
     "format:check": "biome format",
     "format:fix": "biome format --fix",

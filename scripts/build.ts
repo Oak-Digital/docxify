@@ -14,7 +14,7 @@ const { values, positionals } = parseArgs({
   allowPositionals: true,
 });
 
-const isCi = values.ci ?? false;
+// const isCi = values.ci ?? false;
 
 const defaultBuildConfig: BuildConfig = {
   entrypoints: [join(__dirname, "../src/index.ts")],
@@ -27,18 +27,13 @@ const cjsPromise = Bun.build({
   format: "cjs",
   naming: "[dir]/[name].cjs",
 });
+const esmPromise = Bun.build({
+  ...defaultBuildConfig,
+  plugins: [dts()],
+  format: "esm",
+  naming: "[dir]/[name].js",
+});
 
-const promises = [cjsPromise];
-
-if (!isCi) {
-  promises.push(
-    Bun.build({
-      ...defaultBuildConfig,
-      plugins: [dts()],
-      format: "esm",
-      naming: "[dir]/[name].js",
-    }),
-  );
-}
+const promises = [cjsPromise, esmPromise];
 
 await Promise.all(promises);
