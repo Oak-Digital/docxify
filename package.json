@@ -17,6 +17,7 @@
     "example": "bun run scripts/build-example.ts",
     "build": "bun run scripts/build.ts",
     "build:ci": "bun run scripts/build.ts",
+    "release": "bumpp",
     "typecheck": "tsc --noEmit",
     "format:check": "biome format",
     "format:fix": "biome format --fix",
@@ -29,6 +30,7 @@
     "@biomejs/biome": "1.9.4",
     "@types/bun": "latest",
     "@types/lodash": "^4.17.16",
+    "bumpp": "^10.1.1",
     "bun-plugin-dts": "^0.3.0",
     "docsify-cli": "^4.4.4"
   },
@@ -43,6 +45,9 @@
     "htmlparser2": "^10.0.0",
     "lodash": "^4.17.21",
     "string-ts": "^2.2.1"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "homepage": "https://github.com/Oak-Digital/docxify",
   "repository": {
